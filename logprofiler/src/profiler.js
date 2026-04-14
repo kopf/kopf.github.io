@@ -82,7 +82,8 @@ function classifyBand(durationMs, thresholds) {
 }
 
 export function profileLogLines(rawLog, thresholds) {
-  const rawLines = rawLog.split(/\r?\n/);
+  const rawLines = rawLog.split(/\r?\n/).filter((line) => line.trim() !== "");
+  const totalLines = rawLines.length;
   const parsed = rawLines.map((raw, index) => {
     const timestamp = extractTimestamp(raw);
     return {
@@ -122,11 +123,13 @@ export function profileLogLines(rawLog, thresholds) {
   });
 
   const sortedDurations = [...validDurations].sort((a, b) => a - b);
+  const parsedCount = parsed.filter((line) => line.hasTimestamp).length;
+  const missingCount = parsed.filter((line) => !line.hasTimestamp).length;
   const summary = {
-    totalLines: rawLines.length,
-    parsedLines: parsed.filter((line) => line.hasTimestamp).length,
-    missingLines: parsed.filter((line) => !line.hasTimestamp).length,
-    parseRate: rawLines.length === 0 ? 0 : Math.round((parsed.filter((line) => line.hasTimestamp).length / rawLines.length) * 100),
+    totalLines,
+    parsedLines: parsedCount,
+    missingLines: missingCount,
+    parseRate: totalLines === 0 ? 0 : Math.round((parsedCount / totalLines) * 100),
     minMs: sortedDurations[0] ?? Number.NaN,
     p50Ms: percentile(sortedDurations, 0.5),
     p95Ms: percentile(sortedDurations, 0.95),

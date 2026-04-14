@@ -5,6 +5,11 @@ import { createVirtualList } from "./src/virtual-list.js";
 const elements = {
   analyzeBtn: document.querySelector("#analyzeBtn"),
   clearBtn: document.querySelector("#clearBtn"),
+  contextAfter: document.querySelector("#contextAfter"),
+  contextBefore: document.querySelector("#contextBefore"),
+  filterCritical: document.querySelector("#filterCritical"),
+  filterHot: document.querySelector("#filterHot"),
+  filterWarm: document.querySelector("#filterWarm"),
   jumpHotBtn: document.querySelector("#jumpHotBtn"),
   lineCountText: document.querySelector("#lineCountText"),
   logInput: document.querySelector("#logInput"),
@@ -19,8 +24,16 @@ const elements = {
 };
 
 const state = {
+  contextAfter: 2,
+  contextBefore: 2,
+  filterBands: {
+    critical: false,
+    hot: false,
+    warm: false
+  },
   mode: "relative",
   profile: null,
+  renderedRows: [],
   searchTerm: "",
   thresholds: {
     warm: 50,
@@ -123,6 +136,83 @@ function computeBandCounts(lines, thresholds) {
   return counts;
 }
 
+function classifyBand(durationMs, thresholds) {
+  if (!Number.isFinite(durationMs)) {
+    return "none";
+  }
+  if (durationMs >= thresholds.critical) {
+    return "critical";
+  }
+  if (durationMs >= thresholds.hot) {
+    return "hot";
+  }
+  if (durationMs >= thresholds.warm) {
+    return "warm";
+  }
+  return "cool";
+}
+
+function hasBandFilterEnabled(filterBands) {
+  return filterBands.warm || filterBands.hot || filterBands.critical;
+}
+
+function toContextValue(inputValue, fallback) {
+  const parsed = Number(inputValue);
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+  return Math.max(0, Math.floor(parsed));
+}
+
+function syncBandFiltersFromInputs() {
+  state.filterBands = {
+    warm: Boolean(elements.filterWarm.checked),
+    hot: Boolean(elements.filterHot.checked),
+    critical: Boolean(elements.filterCritical.checked)
+  };
+}
+
+function syncContextWindowFromInputs() {
+  state.contextBefore = toContextValue(elements.contextBefore.value, state.contextBefore);
+  state.contextAfter = toContextValue(elements.contextAfter.value, state.contextAfter);
+}
+
+function buildVisibleIndexes(lines, thresholds, filterBands, contextBefore, contextAfter) {
+  if (!hasBandFilterEnabled(filterBands)) {
+    return lines.map((_, index) => index);
+  }
+
+  const anchors = [];
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    const band = classifyBand(line.durationMs, thresholds);
+    if (filterBands[band]) {
+      anchors.push(index);
+    }
+  }
+
+  if (anchors.length === 0) {
+    return [];
+  }
+
+  const included = new Array(lines.length).fill(false);
+  for (const anchor of anchors) {
+    const start = Math.max(0, anchor - contextBefore);
+    const end = Math.min(lines.length - 1, anchor + contextAfter);
+    for (let index = start; index <= end; index += 1) {
+      included[index] = true;
+    }
+  }
+
+  const indexes = [];
+  for (let index = 0; index < included.length; index += 1) {
+    if (included[index]) {
+      indexes.push(index);
+    }
+  }
+  return indexes;
+}
+
 function renderSummary(summary, lines, thresholds) {
   const dynamicBandCounts = computeBandCounts(lines, thresholds);
   const metrics = [
@@ -156,18 +246,30 @@ function renderSummary(summary, lines, thresholds) {
   }
 }
 
-function toRenderableRows(profile, mode, thresholds, searchTerm) {
+function toRenderableRows(profile, mode, thresholds, searchTerm, filterBands, contextBefore, contextAfter) {
   const resolver = createColorResolver({ mode, thresholds, distribution: profile.distribution });
   const lowerSearch = searchTerm.trim().toLowerCase();
-  const sourceLines = lowerSearch
-    ? profile.lines.filter((line) => line.raw.toLowerCase().includes(lowerSearch))
-    : profile.lines;
+  let visibleIndexes = buildVisibleIndexes(
+    profile.lines,
+    thresholds,
+    filterBands,
+    contextBefore,
+    contextAfter
+  );
 
-  return sourceLines.map((line, index) => {
+  if (lowerSearch) {
+    visibleIndexes = visibleIndexes.filter((index) =>
+      profile.lines[index].raw.toLowerCase().includes(lowerSearch)
+    );
+  }
+
+  return visibleIndexes.map((lineIndex, index) => {
+    const line = profile.lines[lineIndex];
     const style = resolver(line.durationMs, line.relativeScore);
 
     return {
       top: index * 24,
+      durationMs: line.durationMs,
       lineNumber: line.lineNumber,
       raw: line.raw,
       hasTimestamp: line.hasTimestamp,
@@ -180,17 +282,27 @@ function toRenderableRows(profile, mode, thresholds, searchTerm) {
 function renderProfile() {
   if (!state.profile) {
     vlist.setItems([]);
+    state.renderedRows = [];
     elements.lineCountText.textContent = "0 lines";
     elements.summaryGrid.replaceChildren();
     return;
   }
 
-  const rows = toRenderableRows(state.profile, state.mode, state.thresholds, state.searchTerm);
+  const rows = toRenderableRows(
+    state.profile,
+    state.mode,
+    state.thresholds,
+    state.searchTerm,
+    state.filterBands,
+    state.contextBefore,
+    state.contextAfter
+  );
+  state.renderedRows = rows;
   vlist.setItems(rows);
   renderSummary(state.profile.summary, state.profile.lines, state.thresholds);
-  elements.lineCountText.textContent = state.searchTerm.trim()
-    ? `${rows.length} / ${state.profile.summary.totalLines} lines`
-    : `${state.profile.summary.totalLines} lines`;
+  elements.lineCountText.textContent = rows.length === state.profile.summary.totalLines
+    ? `${state.profile.summary.totalLines} lines`
+    : `${rows.length} / ${state.profile.summary.totalLines} lines`;
 }
 
 function analyzeLog() {
@@ -218,20 +330,21 @@ function clearAll() {
   elements.logInput.value = "";
   elements.searchInput.value = "";
   state.profile = null;
+  state.renderedRows = [];
   state.searchTerm = "";
   renderProfile();
   elements.statusText.textContent = "Cleared.";
 }
 
 function jumpToHottestLine() {
-  if (!state.profile || state.profile.lines.length === 0) {
+  if (!state.profile || state.renderedRows.length === 0) {
     return;
   }
 
   let maxIndex = -1;
   let maxDuration = -Infinity;
-  for (let index = 0; index < state.profile.lines.length; index += 1) {
-    const line = state.profile.lines[index];
+  for (let index = 0; index < state.renderedRows.length; index += 1) {
+    const line = state.renderedRows[index];
     if (!Number.isFinite(line.durationMs)) {
       continue;
     }
@@ -243,7 +356,7 @@ function jumpToHottestLine() {
 
   if (maxIndex >= 0) {
     vlist.scrollToIndex(maxIndex);
-    elements.statusText.textContent = `Jumped to line #${state.profile.lines[maxIndex].lineNumber}.`;
+    elements.statusText.textContent = `Jumped to line #${state.renderedRows[maxIndex].lineNumber}.`;
   }
 }
 
@@ -265,6 +378,20 @@ for (const key of ["thresholdWarm", "thresholdHot", "thresholdCritical"]) {
   });
 }
 
+for (const key of ["filterWarm", "filterHot", "filterCritical"]) {
+  elements[key].addEventListener("change", () => {
+    syncBandFiltersFromInputs();
+    renderProfile();
+  });
+}
+
+for (const key of ["contextBefore", "contextAfter"]) {
+  elements[key].addEventListener("change", () => {
+    syncContextWindowFromInputs();
+    renderProfile();
+  });
+}
+
 elements.searchInput.addEventListener("input", () => {
   state.searchTerm = elements.searchInput.value;
   renderProfile();
@@ -274,4 +401,6 @@ elements.logInput.addEventListener("paste", () => {
   requestAnimationFrame(analyzeLog);
 });
 
+syncBandFiltersFromInputs();
+syncContextWindowFromInputs();
 renderProfile();

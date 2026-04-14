@@ -47,6 +47,19 @@
           <button id="jumpHotBtn" type="button" class="ghost">Jump to Hottest</button>
         </div>
       </div>
+
+      <div class="control-block">
+        <h2>Band Filters</h2>
+        <div class="band-filter-grid">
+          <label class="checkline"><input id="filterWarm" type="checkbox" /> Warm</label>
+          <label class="checkline"><input id="filterHot" type="checkbox" /> Hot</label>
+          <label class="checkline"><input id="filterCritical" type="checkbox" /> Critical</label>
+        </div>
+        <div class="context-grid">
+          <label>Lines before <input id="contextBefore" type="number" min="0" value="2" /></label>
+          <label>Lines after <input id="contextAfter" type="number" min="0" value="2" /></label>
+        </div>
+      </div>
     </section>
 
     <section class="panel summary-panel">

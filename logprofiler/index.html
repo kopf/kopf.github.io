@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LogProfiler</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="hero">
+      <h1>LogProfiler</h1>
+      <p>Paste logs, detect hotspots, and profile latency entirely in your browser.</p>
+    </header>
+
+    <section class="panel input-panel">
+      <label for="logInput">Raw Log Input</label>
+      <textarea id="logInput" spellcheck="false" placeholder="Paste your log here..."></textarea>
+      <div class="row actions">
+        <button id="analyzeBtn" type="button">Analyze Log</button>
+        <button id="clearBtn" type="button" class="ghost">Clear</button>
+        <span id="statusText" aria-live="polite">Waiting for input.</span>
+      </div>
+    </section>
+
+    <section class="panel controls-panel">
+      <div class="control-block">
+        <h2>Color Mode</h2>
+        <label><input type="radio" name="mode" value="relative" checked /> Relative Heat</label>
+        <label><input type="radio" name="mode" value="absolute" /> Absolute Thresholds</label>
+      </div>
+
+      <div class="control-block">
+        <h2>Thresholds (ms)</h2>
+        <div class="threshold-grid">
+          <label>Warm <input id="thresholdWarm" type="number" min="0" value="50" /></label>
+          <label>Hot <input id="thresholdHot" type="number" min="0" value="200" /></label>
+          <label>Critical <input id="thresholdCritical" type="number" min="0" value="1000" /></label>
+        </div>
+      </div>
+
+      <div class="control-block">
+        <h2>Inspect</h2>
+        <label for="searchInput">Filter text</label>
+        <input id="searchInput" type="text" placeholder="Search log lines..." />
+        <div class="row">
+          <button id="jumpHotBtn" type="button" class="ghost">Jump to Hottest</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel summary-panel">
+      <h2>Profile Summary</h2>
+      <div id="summaryGrid" class="summary-grid"></div>
+    </section>
+
+    <section class="panel results-panel">
+      <div class="results-header">
+        <h2>Profiled Log</h2>
+        <span id="lineCountText">0 lines</span>
+      </div>
+      <div id="resultsViewport" class="results-viewport" role="table" aria-label="Profiled log lines"></div>
+    </section>
+  </main>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

@@ -1,0 +1,294 @@
+:root {
+  --bg-top: #f1e4c8;
+  --bg-bottom: #f7f7f0;
+  --ink: #211f1b;
+  --muted: #635f56;
+  --panel: rgba(255, 252, 244, 0.88);
+  --border: rgba(71, 58, 35, 0.2);
+  --accent: #b44a1f;
+  --accent-strong: #8d2e0d;
+  --ok: #2f7f53;
+  --warn: #d1731f;
+  --danger: #b91f24;
+  --shadow: 0 10px 30px rgba(74, 52, 23, 0.14);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, serif;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(230, 141, 79, 0.24), transparent 35%),
+    radial-gradient(circle at 85% 20%, rgba(214, 186, 94, 0.2), transparent 40%),
+    linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+  min-height: 100vh;
+}
+
+.app-shell {
+  width: min(1280px, 96vw);
+  margin: 0 auto;
+  padding: 1.2rem 0 2rem;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1.3fr 1fr;
+  grid-template-areas:
+    "hero hero"
+    "input controls"
+    "summary summary"
+    "results results";
+}
+
+.hero {
+  grid-area: hero;
+  padding: 0.5rem 0.2rem;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+  letter-spacing: 0.03em;
+}
+
+.hero p {
+  margin: 0.4rem 0 0;
+  color: var(--muted);
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 1rem;
+  backdrop-filter: blur(1px);
+}
+
+.input-panel {
+  grid-area: input;
+}
+
+.controls-panel {
+  grid-area: controls;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.summary-panel {
+  grid-area: summary;
+}
+
+.results-panel {
+  grid-area: results;
+}
+
+label {
+  display: block;
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+
+textarea {
+  width: 100%;
+  min-height: 260px;
+  margin-top: 0.35rem;
+  padding: 0.8rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #fffdf8;
+  resize: vertical;
+  font: 0.87rem/1.45 "Cascadia Mono", "Fira Mono", "Consolas", monospace;
+}
+
+input[type="text"],
+input[type="number"] {
+  width: 100%;
+  margin-top: 0.3rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.42rem 0.55rem;
+  background: #fffdf8;
+  color: var(--ink);
+}
+
+button {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 0.45rem 0.9rem;
+  background: linear-gradient(180deg, #c35d2b, var(--accent-strong));
+  color: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+}
+
+button:hover {
+  filter: brightness(1.05);
+}
+
+button.ghost {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--border);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.actions {
+  margin-top: 0.7rem;
+}
+
+#statusText {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.control-block h2,
+.summary-panel h2,
+.results-header h2 {
+  margin: 0 0 0.55rem;
+  font-size: 1rem;
+  letter-spacing: 0.015em;
+}
+
+.threshold-grid {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.summary-grid {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.metric {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.55rem;
+  background: rgba(255, 255, 255, 0.66);
+}
+
+.metric .label {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.metric .value {
+  font-size: 1.08rem;
+  font-weight: 600;
+}
+
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.55rem;
+}
+
+.results-viewport {
+  height: min(62vh, 560px);
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.6);
+  position: relative;
+}
+
+.vlist-spacer {
+  position: relative;
+  width: 100%;
+}
+
+.vlist-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 24px;
+  display: grid;
+  grid-template-columns: 70px 86px 1fr;
+  align-items: center;
+  padding: 0 0.6rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  font: 0.8rem/1 "Cascadia Mono", "Fira Mono", "Consolas", monospace;
+}
+
+.vlist-row .line-no {
+  color: #4b453c;
+}
+
+.vlist-row .latency {
+  text-align: right;
+  padding-right: 0.6rem;
+  color: #2f2a23;
+}
+
+.vlist-row .text {
+  white-space: pre;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vlist-row.missing-ts {
+  opacity: 0.62;
+}
+
+.vlist-row.filtered-out {
+  display: none;
+}
+
+.pulse-in {
+  animation: pulse-in 260ms ease-out;
+}
+
+@keyframes pulse-in {
+  from {
+    transform: translateY(4px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 980px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "hero"
+      "input"
+      "controls"
+      "summary"
+      "results";
+  }
+
+  .summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .vlist-row {
+    grid-template-columns: 58px 82px 1fr;
+    font-size: 0.76rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .summary-grid,
+  .threshold-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .results-viewport {
+    height: 56vh;
+  }
+}

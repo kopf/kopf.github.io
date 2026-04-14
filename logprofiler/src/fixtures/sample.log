@@ -1,0 +1,10 @@
+2026-04-14 10:32:10.120 INFO boot start
+2026-04-14 10:32:10.180 INFO warmup
+2026-04-14 10:32:10.260 INFO db connect
+2026-04-14 10:32:11.980 WARN query took long
+2026-04-14 10:32:12.020 INFO query done
+2026-04-14 10:32:12.040 INFO response built
+14/04/2026 10:32:12.060 INFO switched date format
+10:32:12.140 2026-04-14 INFO time-first format
+[2026-04-14T10:32:13.940Z] ERROR remote timeout
+2026-04-14 10:32:13.960 INFO retry

@@ -51,11 +51,12 @@
       </div>
 
       <div class="control-block">
-        <h2>Band Filters</h2>
+        <h2>Band Filter</h2>
         <div class="band-filter-grid">
-          <label class="checkline"><input id="filterWarm" type="checkbox" /> Warm</label>
-          <label class="checkline"><input id="filterHot" type="checkbox" /> Hot</label>
-          <label class="checkline"><input id="filterCritical" type="checkbox" /> Critical</label>
+          <label class="checkline"><input type="radio" name="bandFilter" value="off" checked /> Off</label>
+          <label class="checkline"><input type="radio" name="bandFilter" value="warm" /> Warm</label>
+          <label class="checkline"><input type="radio" name="bandFilter" value="hot" /> Hot</label>
+          <label class="checkline"><input type="radio" name="bandFilter" value="critical" /> Critical</label>
         </div>
         <div class="context-grid">
           <label>Lines before <input id="contextBefore" type="number" min="0" value="2" /></label>

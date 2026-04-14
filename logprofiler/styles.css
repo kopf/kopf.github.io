@@ -177,7 +177,7 @@ button.ghost {
 .band-filter-grid {
   display: grid;
   gap: 0.45rem;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .checkline {
@@ -187,7 +187,7 @@ button.ghost {
   margin-top: 0.2rem;
 }
 
-.checkline input[type="checkbox"] {
+.checkline input {
   margin: 0;
 }
 

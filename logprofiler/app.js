@@ -34,7 +34,7 @@ const vlist = createVirtualList(elements.resultsViewport, {
   overscan: 16,
   renderRow: (item) => {
     const row = document.createElement("div");
-    row.className = "vlist-row pulse-in";
+    row.className = "vlist-row";
     row.style.top = `${item.top}px`;
     row.style.background = item.background;
 

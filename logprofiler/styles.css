@@ -246,21 +246,6 @@ button.ghost {
   display: none;
 }
 
-.pulse-in {
-  animation: pulse-in 260ms ease-out;
-}
-
-@keyframes pulse-in {
-  from {
-    transform: translateY(4px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
 @media (max-width: 980px) {
   .app-shell {
     grid-template-columns: 1fr;

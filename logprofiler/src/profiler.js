@@ -65,23 +65,7 @@ function rankDurations(lines, validDurations) {
   });
 }
 
-function classifyBand(durationMs, thresholds) {
-  if (!Number.isFinite(durationMs)) {
-    return "none";
-  }
-  if (durationMs >= thresholds.critical) {
-    return "critical";
-  }
-  if (durationMs >= thresholds.hot) {
-    return "hot";
-  }
-  if (durationMs >= thresholds.warm) {
-    return "warm";
-  }
-  return "cool";
-}
-
-export function profileLogLines(rawLog, thresholds) {
+export function profileLogLines(rawLog) {
   const rawLines = rawLog.split(/\r?\n/).filter((line) => line.trim() !== "");
   const totalLines = rawLines.length;
   const parsed = rawLines.map((raw, index) => {
@@ -117,10 +101,7 @@ export function profileLogLines(rawLog, thresholds) {
     .map((line) => line.durationMs)
     .filter((value) => Number.isFinite(value));
 
-  const ranked = rankDurations(parsed, validDurations).map((line) => {
-    const band = classifyBand(line.durationMs, thresholds);
-    return { ...line, band };
-  });
+  const ranked = rankDurations(parsed, validDurations);
 
   const sortedDurations = [...validDurations].sort((a, b) => a - b);
   const parsedCount = parsed.filter((line) => line.hasTimestamp).length;
@@ -133,12 +114,7 @@ export function profileLogLines(rawLog, thresholds) {
     minMs: sortedDurations[0] ?? Number.NaN,
     p50Ms: percentile(sortedDurations, 0.5),
     p95Ms: percentile(sortedDurations, 0.95),
-    maxMs: sortedDurations[sortedDurations.length - 1] ?? Number.NaN,
-    bandCounts: {
-      warm: ranked.filter((line) => line.band === "warm" || line.band === "hot" || line.band === "critical").length,
-      hot: ranked.filter((line) => line.band === "hot" || line.band === "critical").length,
-      critical: ranked.filter((line) => line.band === "critical").length
-    }
+    maxMs: sortedDurations[sortedDurations.length - 1] ?? Number.NaN
   };
 
   const distribution = {

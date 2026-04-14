@@ -3,12 +3,17 @@ import { profileLogLines } from "./src/profiler.js";
 import { createVirtualList } from "./src/virtual-list.js";
 
 const elements = {
+  absThresholdsBlock: document.querySelector("#absThresholdsBlock"),
   analyzeBtn: document.querySelector("#analyzeBtn"),
   bandFilterInputs: document.querySelectorAll('input[name="bandFilter"]'),
   clearBtn: document.querySelector("#clearBtn"),
   contextAfter: document.querySelector("#contextAfter"),
   contextBefore: document.querySelector("#contextBefore"),
   jumpHotBtn: document.querySelector("#jumpHotBtn"),
+  percentileCritical: document.querySelector("#percentileCritical"),
+  percentileHot: document.querySelector("#percentileHot"),
+  percentileWarm: document.querySelector("#percentileWarm"),
+  pctThresholdsBlock: document.querySelector("#pctThresholdsBlock"),
   lineCountText: document.querySelector("#lineCountText"),
   logInput: document.querySelector("#logInput"),
   modeInputs: document.querySelectorAll('input[name="mode"]'),
@@ -26,6 +31,11 @@ const state = {
   contextAfter: 2,
   contextBefore: 2,
   mode: "relative",
+  percentileThresholds: {
+    warm: 0.75,
+    hot: 0.90,
+    critical: 0.95
+  },
   profile: null,
   renderedRows: [],
   searchTerm: "",
@@ -86,6 +96,61 @@ function getThresholds() {
   };
 }
 
+function getPercentileThresholds() {
+  const warm = Number(elements.percentileWarm.value) / 100;
+  const hot = Number(elements.percentileHot.value) / 100;
+  const critical = Number(elements.percentileCritical.value) / 100;
+  const sorted = [
+    Math.min(0.99, Math.max(0, Number.isFinite(warm) ? warm : 0.75)),
+    Math.min(0.99, Math.max(0, Number.isFinite(hot) ? hot : 0.90)),
+    Math.min(0.99, Math.max(0, Number.isFinite(critical) ? critical : 0.95))
+  ].sort((a, b) => a - b);
+  return {
+    warm: sorted[0],
+    hot: sorted[1],
+    critical: sorted[2]
+  };
+}
+
+function getBand(line) {
+  if (state.mode === "absolute") {
+    const t = state.thresholds;
+    if (!Number.isFinite(line.durationMs)) {
+      return "none";
+    }
+    if (line.durationMs >= t.critical) {
+      return "critical";
+    }
+    if (line.durationMs >= t.hot) {
+      return "hot";
+    }
+    if (line.durationMs >= t.warm) {
+      return "warm";
+    }
+    return "cool";
+  }
+  const p = state.percentileThresholds;
+  if (!Number.isFinite(line.relativeScore)) {
+    return "none";
+  }
+  if (line.relativeScore >= p.critical) {
+    return "critical";
+  }
+  if (line.relativeScore >= p.hot) {
+    return "hot";
+  }
+  if (line.relativeScore >= p.warm) {
+    return "warm";
+  }
+  return "cool";
+}
+
+function syncThresholdUI() {
+  const isAbsolute = state.mode === "absolute";
+  elements.absThresholdsBlock.classList.toggle("hidden", !isAbsolute);
+  elements.pctThresholdsBlock.classList.toggle("hidden", isAbsolute);
+}
+
 function activeMode() {
   for (const input of elements.modeInputs) {
     if (input.checked) {
@@ -105,7 +170,7 @@ function formatMs(value) {
   return `${Math.round(value)}ms`;
 }
 
-function computeBandCounts(lines, thresholds) {
+function computeBandCounts(lines) {
   const counts = {
     warm: 0,
     hot: 0,
@@ -113,37 +178,19 @@ function computeBandCounts(lines, thresholds) {
   };
 
   for (const line of lines) {
-    if (!Number.isFinite(line.durationMs)) {
-      continue;
-    }
-    if (line.durationMs >= thresholds.warm) {
+    const band = getBand(line);
+    if (band === "warm" || band === "hot" || band === "critical") {
       counts.warm += 1;
     }
-    if (line.durationMs >= thresholds.hot) {
+    if (band === "hot" || band === "critical") {
       counts.hot += 1;
     }
-    if (line.durationMs >= thresholds.critical) {
+    if (band === "critical") {
       counts.critical += 1;
     }
   }
 
   return counts;
-}
-
-function classifyBand(durationMs, thresholds) {
-  if (!Number.isFinite(durationMs)) {
-    return "none";
-  }
-  if (durationMs >= thresholds.critical) {
-    return "critical";
-  }
-  if (durationMs >= thresholds.hot) {
-    return "hot";
-  }
-  if (durationMs >= thresholds.warm) {
-    return "warm";
-  }
-  return "cool";
 }
 
 function toContextValue(inputValue, fallback) {
@@ -168,33 +215,28 @@ function syncContextWindowFromInputs() {
   state.contextAfter = toContextValue(elements.contextAfter.value, state.contextAfter);
 }
 
-function minDurationForBandFilter(level, thresholds) {
-  if (level === "warm") {
-    return thresholds.warm;
+function bandMeetsFilter(band, filterLevel) {
+  if (filterLevel === "warm") {
+    return band === "warm" || band === "hot" || band === "critical";
   }
-  if (level === "hot") {
-    return thresholds.hot;
+  if (filterLevel === "hot") {
+    return band === "hot" || band === "critical";
   }
-  if (level === "critical") {
-    return thresholds.critical;
+  if (filterLevel === "critical") {
+    return band === "critical";
   }
-  return Number.NaN;
+  return false;
 }
 
-function buildVisibleIndexes(lines, thresholds, bandFilter, contextBefore, contextAfter) {
+function buildVisibleIndexes(lines, bandFilter, contextBefore, contextAfter) {
   if (bandFilter === "off") {
-    return lines.map((_, index) => index);
-  }
-
-  const minDuration = minDurationForBandFilter(bandFilter, thresholds);
-  if (!Number.isFinite(minDuration)) {
     return lines.map((_, index) => index);
   }
 
   const anchors = [];
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index];
-    if (Number.isFinite(line.durationMs) && line.durationMs >= minDuration) {
+    if (bandMeetsFilter(getBand(line), bandFilter)) {
       anchors.push(index);
     }
   }
@@ -222,7 +264,7 @@ function buildVisibleIndexes(lines, thresholds, bandFilter, contextBefore, conte
 }
 
 function renderSummary(summary, lines, thresholds) {
-  const dynamicBandCounts = computeBandCounts(lines, thresholds);
+  const dynamicBandCounts = computeBandCounts(lines);
   const metrics = [
     ["Lines", String(summary.totalLines)],
     ["Parsed", `${summary.parsedLines} (${summary.parseRate}%)`],
@@ -259,7 +301,6 @@ function toRenderableRows(profile, mode, thresholds, searchTerm, bandFilter, con
   const lowerSearch = searchTerm.trim().toLowerCase();
   let visibleIndexes = buildVisibleIndexes(
     profile.lines,
-    thresholds,
     bandFilter,
     contextBefore,
     contextAfter
@@ -326,8 +367,9 @@ function analyzeLog() {
 
   const startedAt = performance.now();
   state.thresholds = getThresholds();
+  state.percentileThresholds = getPercentileThresholds();
   state.mode = activeMode();
-  state.profile = profileLogLines(raw, state.thresholds);
+  state.profile = profileLogLines(raw);
   renderProfile();
 
   const duration = (performance.now() - startedAt).toFixed(1);
@@ -375,6 +417,7 @@ elements.jumpHotBtn.addEventListener("click", jumpToHottestLine);
 for (const input of elements.modeInputs) {
   input.addEventListener("change", () => {
     state.mode = activeMode();
+    syncThresholdUI();
     renderProfile();
   });
 }
@@ -409,6 +452,15 @@ elements.logInput.addEventListener("paste", () => {
   requestAnimationFrame(analyzeLog);
 });
 
+for (const key of ["percentileWarm", "percentileHot", "percentileCritical"]) {
+  elements[key].addEventListener("change", () => {
+    state.percentileThresholds = getPercentileThresholds();
+    renderProfile();
+  });
+}
+
 state.bandFilter = activeBandFilter();
+state.percentileThresholds = getPercentileThresholds();
+syncThresholdUI();
 syncContextWindowFromInputs();
 renderProfile();

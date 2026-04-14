@@ -30,12 +30,21 @@
         <label><input type="radio" name="mode" value="absolute" /> Absolute Thresholds</label>
       </div>
 
-      <div class="control-block">
+      <div id="absThresholdsBlock" class="control-block hidden">
         <h2>Thresholds (ms)</h2>
         <div class="threshold-grid">
           <label>Warm <input id="thresholdWarm" type="number" min="0" value="50" /></label>
           <label>Hot <input id="thresholdHot" type="number" min="0" value="200" /></label>
           <label>Critical <input id="thresholdCritical" type="number" min="0" value="1000" /></label>
+        </div>
+      </div>
+
+      <div id="pctThresholdsBlock" class="control-block">
+        <h2>Thresholds (percentile)</h2>
+        <div class="threshold-grid">
+          <label>Warm <input id="percentileWarm" type="number" min="0" max="99" value="75" /></label>
+          <label>Hot <input id="percentileHot" type="number" min="0" max="99" value="90" /></label>
+          <label>Critical <input id="percentileCritical" type="number" min="0" max="99" value="95" /></label>
         </div>
       </div>
 

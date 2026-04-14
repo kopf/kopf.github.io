@@ -156,6 +156,19 @@ function hasBandFilterEnabled(filterBands) {
   return filterBands.warm || filterBands.hot || filterBands.critical;
 }
 
+function matchesSelectedBands(band, filterBands) {
+  if (band === "critical") {
+    return filterBands.critical || filterBands.hot || filterBands.warm;
+  }
+  if (band === "hot") {
+    return filterBands.hot || filterBands.warm;
+  }
+  if (band === "warm") {
+    return filterBands.warm;
+  }
+  return false;
+}
+
 function toContextValue(inputValue, fallback) {
   const parsed = Number(inputValue);
   if (!Number.isFinite(parsed)) {
@@ -186,7 +199,7 @@ function buildVisibleIndexes(lines, thresholds, filterBands, contextBefore, cont
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index];
     const band = classifyBand(line.durationMs, thresholds);
-    if (filterBands[band]) {
+    if (matchesSelectedBands(band, filterBands)) {
       anchors.push(index);
     }
   }

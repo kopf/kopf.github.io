@@ -142,6 +142,15 @@ button.ghost {
   flex-wrap: wrap;
 }
 
+.inspect-action {
+  margin-bottom: 0.65rem;
+}
+
+.inspect-filter {
+  border-top: 1px solid var(--border);
+  padding-top: 0.65rem;
+}
+
 .actions {
   margin-top: 0.7rem;
 }

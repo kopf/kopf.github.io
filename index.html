@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>kopf.github.io</title>
+		<meta
+			name="description"
+			content="Personal GitHub Pages site with tools and experiments."
+		/>
+		<style>
+			:root {
+				--bg-1: #f3efe6;
+				--bg-2: #dce7f3;
+				--ink: #1e2530;
+				--muted: #5b6675;
+				--card: #fffcf6cc;
+				--accent: #0f766e;
+				--accent-2: #155e75;
+				--ring: #0f766e33;
+			}
+
+			* {
+				box-sizing: border-box;
+			}
+
+			body {
+				margin: 0;
+				min-height: 100vh;
+				font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif;
+				color: var(--ink);
+				background:
+					radial-gradient(circle at 15% 20%, #ffffff88 0, #ffffff00 38%),
+					radial-gradient(circle at 85% 80%, #ffffff66 0, #ffffff00 44%),
+					linear-gradient(145deg, var(--bg-1), var(--bg-2));
+				display: grid;
+				place-items: center;
+				padding: 2rem;
+			}
+
+			.orb {
+				position: fixed;
+				width: 38vmax;
+				aspect-ratio: 1;
+				border-radius: 50%;
+				pointer-events: none;
+				z-index: -1;
+				filter: blur(42px);
+				opacity: 0.45;
+			}
+
+			.orb.one {
+				top: -8vmax;
+				right: -6vmax;
+				background: #0f766e66;
+			}
+
+			.orb.two {
+				bottom: -12vmax;
+				left: -10vmax;
+				background: #155e7555;
+			}
+
+			main {
+				width: min(860px, 100%);
+				background: var(--card);
+				border: 1px solid #ffffff99;
+				border-radius: 24px;
+				padding: clamp(1.5rem, 3vw, 3rem);
+				box-shadow: 0 20px 55px #23324722;
+				backdrop-filter: blur(6px);
+				animation: rise 750ms ease-out both;
+			}
+
+			.eyebrow {
+				margin: 0;
+				letter-spacing: 0.12em;
+				text-transform: uppercase;
+				color: var(--accent-2);
+				font-size: 0.78rem;
+				font-weight: 700;
+			}
+
+			h1 {
+				margin: 0.5rem 0 1rem;
+				font-size: clamp(2rem, 6vw, 3.8rem);
+				line-height: 1.05;
+			}
+
+			p {
+				margin: 0;
+				max-width: 62ch;
+				color: var(--muted);
+				line-height: 1.65;
+			}
+
+			.actions {
+				margin-top: 2rem;
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.9rem;
+			}
+
+			.btn {
+				text-decoration: none;
+				font-weight: 700;
+				border-radius: 999px;
+				padding: 0.82rem 1.3rem;
+				transition: transform 0.15s ease, box-shadow 0.15s ease;
+			}
+
+			.btn.primary {
+				color: #ffffff;
+				background: linear-gradient(135deg, var(--accent), var(--accent-2));
+				box-shadow: 0 10px 25px var(--ring);
+			}
+
+			.btn.secondary {
+				color: var(--accent-2);
+				border: 1px solid #155e7544;
+				background: #ffffff99;
+			}
+
+			.btn:hover {
+				transform: translateY(-2px);
+			}
+
+			.btn:focus-visible {
+				outline: 3px solid var(--ring);
+				outline-offset: 3px;
+			}
+
+			footer {
+				margin-top: 1.8rem;
+				font-size: 0.92rem;
+				color: var(--muted);
+			}
+
+			@keyframes rise {
+				from {
+					opacity: 0;
+					transform: translateY(10px);
+				}
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+
+			@media (max-width: 640px) {
+				body {
+					padding: 1rem;
+				}
+
+				main {
+					border-radius: 18px;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<div class="orb one" aria-hidden="true"></div>
+		<div class="orb two" aria-hidden="true"></div>
+
+		<main>
+			<p class="eyebrow">Welcome</p>
+			<h1>kopf.github.io</h1>
+			<p>
+				Just a provisional landing page for my GitHub Pages site.
+			</p>
+
+			<section class="actions" aria-label="Primary links">
+				<a class="btn primary" href="./logprofiler/">Open LogProfiler</a>
+				<a class="btn secondary" href="https://github.com" rel="noopener noreferrer"
+					>View GitHub</a
+				>
+			</section>
+
+			<footer>&nbsp;</footer>
+		</main>
+	</body>
+</html>
